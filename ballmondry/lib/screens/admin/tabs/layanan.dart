@@ -41,7 +41,9 @@ class _LayananState extends State<Layanan> {
     String? id, // Jika ID null berarti CREATE, jika ada berarti UPDATE
     required String nama,
     required String hargaReg,
-    required String hargaExp
+    required String hargaExp,
+    required String jamReguler,
+    required String jamExpress,
   }) async {
     setState(() => isLoading = true);
 
@@ -59,6 +61,8 @@ class _LayananState extends State<Layanan> {
         "nama_layanan": nama,
         "harga_reguler": int.parse(hargaReg),
         "harga_express": int.parse(hargaExp),
+        "jam_reguler": int.parse(jamReguler),
+        "jam_express": int.parse(jamExpress),
       });
 
       final streamedResponse = await request.send();
@@ -107,31 +111,173 @@ class _LayananState extends State<Layanan> {
     final conNama = TextEditingController(text: isEdit ? item['nama_layanan'] : '');
     final conReg = TextEditingController(text: isEdit ? item['harga_reguler'].toString() : '');
     final conExp = TextEditingController(text: isEdit ? item['harga_express'].toString() : '');
+    final conJamReguler = TextEditingController(text: isEdit ? item['jam_reguler'].toString() : '');
+    final conJamExpress = TextEditingController(text: isEdit ? item['jam_express'].toString() : '');
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isEdit ? "Edit Layanan" : "Tambah Layanan Baru"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
           children: [
-            TextField(
-              controller: conNama,
-              decoration: const InputDecoration(labelText: "Nama Layanan (Cth: Cuci Karpet)"),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                isEdit ? Icons.edit : Icons.add,
+                color: Colors.deepPurple,
+                size: 24,
+              ),
             ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: conReg,
-              decoration: const InputDecoration(labelText: "Harga Reguler /kg (Rp)", prefixText: "Rp "),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: conExp,
-              decoration: const InputDecoration(labelText: "Harga Express /kg (Rp)", prefixText: "Rp "),
-              keyboardType: TextInputType.number,
+            const SizedBox(width: 12),
+            Text(
+              isEdit ? "Edit Layanan" : "Tambah Layanan Baru",
+              style: const TextStyle(fontSize: 18),
             ),
           ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Nama Layanan
+              TextField(
+                controller: conNama,
+                decoration: InputDecoration(
+                  labelText: "Nama Layanan",
+                  hintText: "Contoh: Cuci Karpet",
+                  prefixIcon: const Icon(Icons.label_outline),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Section Header - Reguler
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.schedule, size: 18, color: Colors.blue[700]),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Layanan Reguler",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Harga Reguler
+              TextField(
+                controller: conReg,
+                decoration: InputDecoration(
+                  labelText: "Harga /kg",
+                  hintText: "Contoh: 5000",
+                  prefixIcon: const Icon(Icons.payments),
+                  prefixText: "Rp ",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.blue.shade50,
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 12),
+              
+              // Durasi Reguler
+              TextField(
+                controller: conJamReguler,
+                decoration: InputDecoration(
+                  labelText: "Durasi Pengerjaan",
+                  hintText: "Contoh: 24",
+                  prefixIcon: const Icon(Icons.access_time),
+                  suffixText: "jam",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.blue.shade50,
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 20),
+              
+              // Section Header - Express
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.bolt, size: 18, color: Colors.orange[700]),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Layanan Express",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              
+              // Harga Express
+              TextField(
+                controller: conExp,
+                decoration: InputDecoration(
+                  labelText: "Harga /kg",
+                  hintText: "Contoh: 8000",
+                  prefixIcon: const Icon(Icons.payments),
+                  prefixText: "Rp ",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.orange.shade50,
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 12),
+              
+              // Durasi Express
+              TextField(
+                controller: conJamExpress,
+                decoration: InputDecoration(
+                  labelText: "Durasi Pengerjaan",
+                  hintText: "Contoh: 12",
+                  prefixIcon: const Icon(Icons.access_time),
+                  suffixText: "jam",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.orange.shade50,
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -139,8 +285,16 @@ class _LayananState extends State<Layanan> {
             child: const Text("Batal", style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
             onPressed: () {
-              if (conNama.text.isEmpty || conReg.text.isEmpty || conExp.text.isEmpty) {
+              if (conNama.text.isEmpty || conReg.text.isEmpty || conExp.text.isEmpty || conJamReguler.text.isEmpty || conJamExpress.text.isEmpty) {
                  ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Semua kolom harus diisi!"), backgroundColor: Colors.orange),
                  );
@@ -153,6 +307,8 @@ class _LayananState extends State<Layanan> {
                 nama: conNama.text,
                 hargaReg: conReg.text,
                 hargaExp: conExp.text,
+                jamReguler: conJamReguler.text,
+                jamExpress: conJamExpress.text,
               );
             },
             child: Text(isEdit ? "Update" : "Simpan"),
@@ -186,49 +342,225 @@ class _LayananState extends State<Layanan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       body: isLoading 
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: fetchLayanan,
               child: layananList.isEmpty 
-                ? const Center(child: Text("Belum ada layanan tersedia."))
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey[400]),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Belum ada layanan tersedia",
+                          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Tap tombol + untuk menambah layanan baru",
+                          style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
+                  )
                 : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 80), // Biar gak ketutup FAB
+                    padding: const EdgeInsets.all(16),
                     itemCount: layananList.length,
                     itemBuilder: (context, index) {
                       var item = layananList[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.deepPurple.shade100,
-                            child: Icon(Icons.local_laundry_service, color: Colors.deepPurple.shade800),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.white, Colors.deepPurple.shade50],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          title: Text(
-                            item['nama_layanan'],
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          subtitle: Column(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.deepPurple.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 5),
-                              Text("Reguler: Rp ${item['harga_reguler']}/kg"),
-                              Text("Express: Rp ${item['harga_express']}/kg", style: const TextStyle(color: Colors.orange)),
-                            ],
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.deepPurple),
-                                onPressed: () => showFormDialog(item: item),
+                              // Header dengan nama layanan dan action buttons
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.deepPurple,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.local_laundry_service,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      item['nama_layanan'],
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.deepPurple,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.edit_outlined, color: Colors.deepPurple[700]),
+                                    onPressed: () => showFormDialog(item: item),
+                                    tooltip: "Edit",
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                    onPressed: () => showDeleteConfirm(item['id'].toString(), item['nama_layanan']),
+                                    tooltip: "Hapus",
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => showDeleteConfirm(item['id'].toString(), item['nama_layanan']),
+                              const SizedBox(height: 16),
+                              
+                              // Pricing info dengan cards
+                              Row(
+                                children: [
+                                  // Regular Card
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.blue.shade200),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(Icons.schedule, size: 16, color: Colors.blue[700]),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                "Reguler",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.blue[700],
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.payments, size: 14, color: Colors.blue[600]),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  "Rp ${item['harga_reguler']}/kg",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.blue[800],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.access_time, size: 14, color: Colors.blue[600]),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                "${item['jam_reguler']} jam",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.blue[700],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  
+                                  // Express Card
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.orange.shade200),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(Icons.bolt, size: 16, color: Colors.orange[700]),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                "Express",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.orange[700],
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.payments, size: 14, color: Colors.orange[600]),
+                                              const SizedBox(width: 4),
+                                              Expanded(
+                                                child: Text(
+                                                  "Rp ${item['harga_express']}/kg",
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.orange[800],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.access_time, size: 14, color: Colors.orange[600]),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                "${item['jam_express']} jam",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.orange[700],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -237,12 +569,12 @@ class _LayananState extends State<Layanan> {
                     },
                   ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => showFormDialog(),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text("Tambah Layanan"),
+        elevation: 4,
+        child: const Icon(Icons.add),
       ),
     );
   }

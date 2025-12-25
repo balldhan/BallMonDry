@@ -16,16 +16,16 @@ const getAllLayanan = (req, res) => {
 
 // CREATE LAYANAN
 const createLayanan = (req, res) => {
-    const { nama_layanan, harga_reguler, harga_express } = req.body;
+    const { nama_layanan, harga_reguler, harga_express, jam_reguler, jam_express } = req.body;
     
-    if (!nama_layanan || !harga_reguler || !harga_express) {
+    if (!nama_layanan || !harga_reguler || !harga_express || !jam_reguler || !jam_express) {
         return res.status(400).json({ 
             message: 'Semua field harus diisi' 
         });
     }
 
-    const sql = "INSERT INTO layanan (nama_layanan, harga_reguler, harga_express) VALUES (?, ?, ?)";
-    db.query(sql, [nama_layanan, harga_reguler, harga_express], (err, result) => {
+    const sql = "INSERT INTO layanan (nama_layanan, harga_reguler, harga_express, jam_reguler, jam_express) VALUES (?, ?, ?, ?, ?)";
+    db.query(sql, [nama_layanan, harga_reguler, harga_express, jam_reguler, jam_express], (err, result) => {
         if (err) {
             console.error('Create layanan error:', err);
             return res.status(500).json({ 
@@ -42,16 +42,16 @@ const createLayanan = (req, res) => {
 // UPDATE LAYANAN
 const updateLayanan = (req, res) => {
     const { id } = req.params;
-    const { nama_layanan, harga_reguler, harga_express } = req.body;
+    const { nama_layanan, harga_reguler, harga_express, jam_reguler, jam_express } = req.body;
     
-    if (!nama_layanan || !harga_reguler || !harga_express) {
+    if (!nama_layanan || !harga_reguler || !harga_express || !jam_reguler || !jam_express) {
         return res.status(400).json({ 
             message: 'Semua field harus diisi' 
         });
     }
 
-    const sql = "UPDATE layanan SET nama_layanan = ?, harga_reguler = ?, harga_express = ? WHERE id = ?";
-    db.query(sql, [nama_layanan, harga_reguler, harga_express, id], (err, result) => {
+    const sql = "UPDATE layanan SET nama_layanan = ?, harga_reguler = ?, harga_express = ?, jam_reguler = ?, jam_express = ? WHERE id = ?";
+    db.query(sql, [nama_layanan, harga_reguler, harga_express, jam_reguler, jam_express, id], (err, result) => {
         if (err) {
             console.error('Update layanan error:', err);
             return res.status(500).json({ 
