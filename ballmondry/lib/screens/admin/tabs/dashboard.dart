@@ -16,14 +16,28 @@ class _DashboardTabState extends State<DashboardTab> {
 
   Future<void> fetchStats() async {
     try {
+      print("🔍 Fetching stats from: ${Config.baseUrl}/admin/stats");
       final response = await http.get(Uri.parse('${Config.baseUrl}/admin/stats'));
+      print("📊 Response status: ${response.statusCode}");
+      print("📊 Response body: ${response.body}");
+      
       if (response.statusCode == 200) {
         setState(() {
           stats = jsonDecode(response.body);
           isLoading = false;
         });
+      } else {
+        print("❌ Error: Status ${response.statusCode}");
+        setState(() {
+          isLoading = false;
+        });
       }
-    } catch (e) { print(e); }
+    } catch (e) { 
+      print("❌ Exception: $e"); 
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
