@@ -47,13 +47,12 @@ class _ClientPageState extends State<ClientPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Ubah warna background sedikit abu-abu agar kartu cuaca terlihat menonjol
       backgroundColor: Colors.grey[50], 
       appBar: AppBar(
-        title: const Text("Area Pelanggan", style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black, // Warna teks hitam agar elegan
-        elevation: 0, // Hilangkan bayangan AppBar agar terlihat modern
+        title: const Text("BallMonDry", style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        elevation: 0,
         automaticallyImplyLeading: false, 
       ),
       body: _pages[_selectedIndex], 
@@ -61,21 +60,21 @@ class _ClientPageState extends State<ClientPage> {
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
         backgroundColor: Colors.white,
-        indicatorColor: Colors.blue.shade100,
+        indicatorColor: Colors.deepPurple.shade100,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.local_laundry_service_outlined),
-            selectedIcon: Icon(Icons.local_laundry_service, color: Colors.blue),
+            selectedIcon: Icon(Icons.local_laundry_service, color: Colors.deepPurple),
             label: 'Order',
           ),
           NavigationDestination(
             icon: Icon(Icons.cloud_outlined),
-            selectedIcon: Icon(Icons.cloud, color: Colors.blue),
+            selectedIcon: Icon(Icons.cloud, color: Colors.deepPurple),
             label: 'Cuaca',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: Colors.blue),
+            selectedIcon: Icon(Icons.person, color: Colors.deepPurple),
             label: 'Profil',
           ),
         ],

@@ -49,48 +49,49 @@ class _OrderState extends State<Order> {
     }
 
     return Scaffold(
-      body: ListView.builder(
-        itemCount: orders.length,
-        itemBuilder: (context, index) {
-          // --- BAGIAN INI YANG SEBELUMNYA HILANG/ERROR ---
+      body: RefreshIndicator(
+        onRefresh: fetchOrders,
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          itemCount: orders.length,
+          itemBuilder: (context, index) {
           var item = orders[index]; 
-          // -----------------------------------------------
 
           return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
             elevation: 3,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: CircleAvatar(
-                backgroundColor: Colors.indigo.shade50,
-                child: const Icon(Icons.receipt_long, color: Colors.indigo),
+                radius: 25,
+                backgroundColor: Colors.deepPurple.shade100,
+                child: const Icon(Icons.receipt_long, color: Colors.deepPurple, size: 24),
               ),
-              // Mengambil data dari variabel 'item'
               title: Text(
                 item['username'] ?? 'User', 
-                style: const TextStyle(fontWeight: FontWeight.bold)
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
               ),
               subtitle: Text(
                 "${item['nama_layanan']} - ${item['status']}\n${item['tgl_order'] ?? ''}",
-                style: const TextStyle(height: 1.5),
+                style: const TextStyle(height: 1.5, fontSize: 13),
               ),
               isThreeLine: true,
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.deepPurple),
               
-              // Navigasi ke Detail
               onTap: () async {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    // Pastikan nama class ini sama dengan file order_detail_screen.dart
                     builder: (context) => OrderDetail(orderData: item),
                   ),
                 );
-                // Refresh data setelah kembali dari halaman detail
                 fetchOrders();
               },
             ),
           );
         },
+        ),
       ),
     );
   }

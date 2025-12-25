@@ -23,17 +23,37 @@ class _UserState extends State<User> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: users.length,
-      itemBuilder: (context, index) {
+    return RefreshIndicator(
+      onRefresh: fetchUsers,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        itemCount: users.length,
+        itemBuilder: (context, index) {
         var user = users[index];
-        return ListTile(
-          leading: const CircleAvatar(child: Icon(Icons.person)),
-          title: Text(user['username']),
-          subtitle: Text("${user['no_telepon']}\n${user['alamat']}"),
-          isThreeLine: true,
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            leading: CircleAvatar(
+              radius: 25,
+              backgroundColor: Colors.deepPurple.shade100,
+              child: const Icon(Icons.person, color: Colors.deepPurple, size: 28),
+            ),
+            title: Text(
+              user['username'],
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            subtitle: Text(
+              "${user['no_hp']}\n${user['alamat']}",
+              style: const TextStyle(fontSize: 13, height: 1.5),
+            ),
+            isThreeLine: true,
+          ),
         );
       },
+      ),
     );
   }
 }

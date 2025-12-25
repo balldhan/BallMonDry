@@ -204,8 +204,8 @@ class _LayananState extends State<Layanan> {
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                           leading: CircleAvatar(
-                            backgroundColor: Colors.blue.shade100,
-                            child: Icon(Icons.local_laundry_service, color: Colors.blue.shade800),
+                            backgroundColor: Colors.deepPurple.shade100,
+                            child: Icon(Icons.local_laundry_service, color: Colors.deepPurple.shade800),
                           ),
                           title: Text(
                             item['nama_layanan'],
@@ -223,7 +223,7 @@ class _LayananState extends State<Layanan> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
+                                icon: const Icon(Icons.edit, color: Colors.deepPurple),
                                 onPressed: () => showFormDialog(item: item),
                               ),
                               IconButton(
@@ -239,7 +239,8 @@ class _LayananState extends State<Layanan> {
             ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showFormDialog(),
-        backgroundColor: Colors.indigo,
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text("Tambah Layanan"),
       ),

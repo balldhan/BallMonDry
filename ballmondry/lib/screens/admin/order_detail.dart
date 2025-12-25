@@ -75,7 +75,7 @@ class _OrderDetailState extends State<OrderDetail> {
     String selectedStatus = order['status'];
     
     // List status yang valid
-    List<String> statuses = ['menunggu konfirmasi', 'dijemput', 'diproses', 'selesai', 'konfirmasi'];
+    List<String> statuses = ['menunggu konfirmasi', 'dijemput', 'proses', 'selesai', 'konfirmasi'];
     if (!statuses.contains(selectedStatus)) selectedStatus = statuses[0];
 
     showDialog(
@@ -125,7 +125,7 @@ class _OrderDetailState extends State<OrderDetail> {
               // Kirim data ke fungsi update
               updateOrder(selectedStatus, beratController.text, estimasiController.text);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, foregroundColor: Colors.white),
             child: const Text("SIMPAN"),
           )
         ],
@@ -148,9 +148,10 @@ class _OrderDetailState extends State<OrderDetail> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Detail Pesanan"),
-        backgroundColor: Colors.indigo,
+        title: const Text("Detail Pesanan", style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -209,9 +210,9 @@ class _OrderDetailState extends State<OrderDetail> {
             const Text("Tagihan", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 10),
             Card(
-              color: Colors.indigo.shade50,
+              color: Colors.deepPurple.shade50,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.indigo.shade100)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.deepPurple.shade100)),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -221,8 +222,8 @@ class _OrderDetailState extends State<OrderDetail> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("TOTAL HARGA", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.indigo)),
-                        Text(currency.format(order['total_harga']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.indigo)),
+                        const Text("TOTAL HARGA", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.deepPurple)),
+                        Text(currency.format(order['total_harga']), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.deepPurple)),
                       ],
                     )
                   ],
@@ -235,9 +236,10 @@ class _OrderDetailState extends State<OrderDetail> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: showUpdateDialog,
-        backgroundColor: Colors.indigo,
-        icon: const Icon(Icons.edit, color: Colors.white),
-        label: const Text("Update Status / Berat", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.edit),
+        label: const Text("Update Status / Berat", style: TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }

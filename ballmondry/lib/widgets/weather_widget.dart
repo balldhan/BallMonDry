@@ -11,7 +11,7 @@ class WeatherWidget extends StatefulWidget {
 }
 
 class _WeatherWidgetState extends State<WeatherWidget> {
-  // GANTI KODE WILAYAH INI JIKA PERLU (Ini kode Cibeunying Kidul, Bandung)
+  // GANTI KODE WILAYAH INI JIKA PERLU
   final String apiUrl = "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=32.73.14.1002";
   
   Map<String, dynamic>? currentWeather;
@@ -34,21 +34,25 @@ class _WeatherWidgetState extends State<WeatherWidget> {
         String desa = json['lokasi']['desa'];
         String kota = json['lokasi']['kotkab'];
 
+        // 1. Ambil & Ratakan Data
         List rawData = json['data'][0]['cuaca'];
         List flattened = [];
         for (var list in rawData) {
           for (var item in list) flattened.add(item);
         }
 
+        // 2. Urutkan Waktu
         flattened.sort((a, b) => DateTime.parse(a['local_datetime']).compareTo(DateTime.parse(b['local_datetime'])));
 
         DateTime now = DateTime.now();
         Map<String, dynamic>? current;
         List<dynamic> futureForecasts = [];
 
+        // 3. Filter Data
         for (var item in flattened) {
           DateTime itemTime = DateTime.parse(item['local_datetime']);
-          // Ambil data yg valid (maksimal 3 jam yang lalu masih dianggap 'sekarang')
+          
+          // Data valid jika belum lewat dari 3 jam yang lalu
           if (itemTime.isAfter(now.subtract(const Duration(hours: 3)))) {
             if (current == null) {
               current = item; 
@@ -62,7 +66,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
           setState(() {
             locationName = "$desa, $kota";
             currentWeather = current;
-            forecastList = futureForecasts.take(7).toList(); 
+            forecastList = futureForecasts.take(15).toList(); 
             isLoading = false;
           });
         }
@@ -78,6 +82,12 @@ class _WeatherWidgetState extends State<WeatherWidget> {
     if (desc.contains("hujan")) return Icons.thunderstorm;
     if (desc.contains("petir")) return Icons.flash_on;
     return Icons.cloud; 
+  }
+
+  // Helper untuk nama hari Indonesia
+  String getDayName(DateTime date) {
+    List<String> days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    return days[date.weekday - 1];
   }
 
   Widget _buildDetailInfo(IconData icon, String value, String label) {
@@ -100,7 +110,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1E3C72), Color(0xFF2A5298)], // Warna Biru Elegan
+          colors: [Color(0xFF1E3C72), Color(0xFF2A5298)], 
           begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
@@ -108,7 +118,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
       ),
       child: Column(
         children: [
-          // UTAMA: CUACA SEKARANG
+          // --- BAGIAN ATAS: CUACA SEKARANG ---
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -118,11 +128,7 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                     const Icon(Icons.location_on, color: Colors.white70, size: 16),
                     const SizedBox(width: 5),
                     Expanded( 
-                      child: Text(
-                        locationName, 
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      child: Text(locationName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
                     ),
                   ],
                 ),
@@ -141,20 +147,19 @@ class _WeatherWidgetState extends State<WeatherWidget> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                // INFO DETAIL (KELEMBAPAN & ANGIN)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildDetailInfo(Icons.water_drop, "${currentWeather!['hu']}%", "Lembap"),
                     _buildDetailInfo(Icons.air, "${currentWeather!['ws']} km/h", "Angin"),
-                    _buildDetailInfo(Icons.visibility, "${currentWeather!['vs_text']}", "Jarak Pandang"),
+                    _buildDetailInfo(Icons.visibility, "${currentWeather!['vs_text']}", "Visibilitas"),
                   ],
                 ),
               ],
             ),
           ),
 
-          // LIST PREDIKSI (KEBAWAH)
+          // --- BAGIAN BAWAH: LIST PREDIKSI (DENGAN HEADER HARI) ---
           Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
@@ -164,27 +169,64 @@ class _WeatherWidgetState extends State<WeatherWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Prediksi Cuaca Kedepan", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text("Prediksi Kedepan", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 10),
-                ListView.separated(
-                  shrinkWrap: true, // Wajib agar tidak error di dalam Column/ScrollView
+                
+                // Gunakan ListView.builder agar bisa custom logic header
+                ListView.builder(
+                  shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: forecastList.length,
-                  separatorBuilder: (context, index) => const Divider(color: Colors.white12, height: 10),
                   itemBuilder: (context, index) {
                     var item = forecastList[index];
                     DateTime time = DateTime.parse(item['local_datetime']);
-                    return Row(
+                    
+                    // --- LOGIC HEADER HARI ---
+                    bool showHeader = false;
+                    if (index == 0) {
+                      showHeader = true; // Item pertama pasti butuh header (Hari ini)
+                    } else {
+                      // Cek apakah tanggal item ini BEDA dengan tanggal item sebelumnya
+                      DateTime prevTime = DateTime.parse(forecastList[index - 1]['local_datetime']);
+                      if (time.day != prevTime.day) {
+                        showHeader = true;
+                      }
+                    }
+                    // -------------------------
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(width: 50, child: Text(DateFormat('HH:mm').format(time), style: const TextStyle(color: Colors.white, fontSize: 13))),
-                        Icon(getWeatherIcon(item['weather_desc']), color: Colors.white70, size: 20),
-                        const SizedBox(width: 10),
-                        Expanded( 
-                          child: Text(item['weather_desc'], style: const TextStyle(color: Colors.white70, fontSize: 13), overflow: TextOverflow.ellipsis),
+                        // TAMPILKAN HEADER JIKA HARI BERUBAH
+                        if (showHeader) 
+                          Padding(
+                            padding: const EdgeInsets.only(top: 15, bottom: 8),
+                            child: Text(
+                              "${getDayName(time)}, ${DateFormat('d MMM').format(time)}", // Cth: Senin, 21 Okt
+                              style: TextStyle(color: Colors.orangeAccent.shade100, fontWeight: FontWeight.bold, fontSize: 12),
+                            ),
+                          ),
+
+                        // ITEM CUACA (PER 3 JAM)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            children: [
+                              SizedBox(width: 50, child: Text(DateFormat('HH:mm').format(time), style: const TextStyle(color: Colors.white, fontSize: 13))),
+                              Icon(getWeatherIcon(item['weather_desc']), color: Colors.white70, size: 20),
+                              const SizedBox(width: 10),
+                              Expanded( 
+                                child: Text(item['weather_desc'], style: const TextStyle(color: Colors.white70, fontSize: 13), overflow: TextOverflow.ellipsis),
+                              ),
+                              Text("${item['t']}°", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 10),
+                              Text("${item['hu']}%", style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 11)),
+                            ],
+                          ),
                         ),
-                        Text("${item['t']}°", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 10),
-                        Text("${item['hu']}%", style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 11)),
+                        // Garis pemisah tipis antar jam (tapi jangan di item terakhir)
+                        if (index != forecastList.length - 1) 
+                          const Divider(color: Colors.white12, height: 1),
                       ],
                     );
                   },

@@ -59,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: const Icon(Icons.local_laundry_service, size: 60, color: Colors.deepPurple),
               ),
               const SizedBox(height: 20),
-              const Text("SMART LAUNDRY", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+              const Text("BallMonDry", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
               const SizedBox(height: 40),
               Container(
                 padding: const EdgeInsets.all(25),

@@ -48,25 +48,32 @@ app.get('/layanan', (req, res) => {
 // Client cuma kirim user_id dan layanan_id. Berat masih 0 karena belum ditimbang.
 // 3. CLIENT: REQUEST PICKUP (DEBUG MODE ON)
 app.post('/order', (req, res) => {
-    const { user_id, layanan_id, tipe_layanan, is_pickup } = req.body;
+  // --- BAGIAN DEBUGGING ---
+  console.log("=== ORDER MASUK ===");
+  console.log("Body dari Flutter:", req.body); // Kita lihat isinya di Terminal
+  console.log("Nilai Estimasi:", req.body.estimasi); 
+  // -------------------------
 
-    if (!user_id || !layanan_id) {
-        return res.status(400).json({ message: 'Data tidak valid' });
+  const { user_id, layanan_id, tipe_layanan, is_pickup, estimasi } = req.body; 
+
+  // Cek jika estimasi kosong/undefined, isi manual
+  const estimasiFinal = estimasi ? estimasi : "Belum ditentukan";
+
+  const sql = `INSERT INTO orders 
+               (user_id, layanan_id, tipe_layanan, is_pickup, estimasi, status, total_harga, berat, tgl_order) 
+               VALUES (?, ?, ?, ?, ?, 'menunggu konfirmasi', 0, 0, NOW())`;
+
+  // Gunakan estimasiFinal
+  const values = [user_id, layanan_id, tipe_layanan, is_pickup, estimasiFinal];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error("Error Database:", err); // Log error database
+      return res.status(500).json({ message: "Gagal membuat order" });
     }
-
-    const pickupVal = (is_pickup === true || is_pickup === "true" || is_pickup === 1) ? 1 : 0;
-    const tipeVal = tipe_layanan || 'reguler';
-
-    // STATUS AWAL: 'menunggu konfirmasi'
-    const sql = "INSERT INTO orders (user_id, layanan_id, tipe_layanan, is_pickup, berat, total_harga, status, tgl_order, estimasi) VALUES (?, ?, ?, ?, 0, 0, 'menunggu konfirmasi', NOW(), '-')";
-    
-    db.query(sql, [user_id, layanan_id, tipeVal, pickupVal], (err, result) => {
-        if (err) {
-            console.error("ERROR DB:", err);
-            return res.status(500).json({ message: 'Gagal simpan', error: err.sqlMessage });
-        }
-        res.json({ message: 'Order berhasil dibuat', id: result.insertId });
-    });
+    console.log("Sukses Insert ID:", result.insertId); // Log sukses
+    return res.status(200).json({ message: "Order berhasil dibuat", id: result.insertId });
+  });
 });
 
 // 4. ADMIN: LIHAT SEMUA ORDER
@@ -98,23 +105,28 @@ app.get('/orders', (req, res) => {
 });
 
 app.put('/order/edit-client', (req, res) => {
-    const { order_id, layanan_id, tipe_layanan, is_pickup } = req.body;
+    // 1. Ambil estimasi dari body
+    const { order_id, layanan_id, tipe_layanan, is_pickup, estimasi } = req.body;
 
     // Cek Status Dulu
     db.query("SELECT status FROM orders WHERE id = ?", [order_id], (err, results) => {
         if (err || results.length === 0) return res.status(404).json({message: 'Order tak ditemukan'});
         
-        // HANYA BOLEH EDIT KALAU "MENUNGGU KONFIRMASI"
         if (results[0].status !== 'menunggu konfirmasi') {
             return res.status(400).json({message: 'Pesanan sudah diproses admin, tidak bisa diedit!'});
         }
 
         const pickupVal = (is_pickup === true || is_pickup === 1) ? 1 : 0;
         
-        // Update data
-        const sql = "UPDATE orders SET layanan_id = ?, tipe_layanan = ?, is_pickup = ? WHERE id = ?";
-        db.query(sql, [layanan_id, tipe_layanan, pickupVal, order_id], (errUp, resUp) => {
-            if (errUp) return res.status(500).json({message: 'Gagal update'});
+        // 2. UPDATE SQL: Tambahkan estimasi = ?
+        const sql = "UPDATE orders SET layanan_id = ?, tipe_layanan = ?, is_pickup = ?, estimasi = ? WHERE id = ?";
+        
+        // 3. Masukkan estimasi ke array parameter (urutannya harus sesuai tanda tanya)
+        db.query(sql, [layanan_id, tipe_layanan, pickupVal, estimasi, order_id], (errUp, resUp) => {
+            if (errUp) {
+                console.error(errUp); // Debugging jika error
+                return res.status(500).json({message: 'Gagal update'});
+            }
             res.json({message: 'Pesanan berhasil diubah'});
         });
     });
@@ -163,7 +175,7 @@ app.post('/register', (req, res) => {
     if (!username || !password || !alamat || !no_telepon) {
         return res.status(400).json({ message: 'Semua kolom (termasuk No HP) wajib diisi!' });
     }
-    const sql = "INSERT INTO users (username, password, role, alamat, no_telepon) VALUES (?, ?, 'client', ?, ?)";
+    const sql = "INSERT INTO users (username, password, role, alamat, no_hp) VALUES (?, ?, 'client', ?, ?)";
     
     db.query(sql, [username, password, alamat, no_telepon], (err, result) => {
         if (err) {

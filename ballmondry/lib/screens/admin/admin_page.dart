@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../auth/login_page.dart'; // <--- 1. Pastikan meng-import halaman Login
 import 'tabs/dashboard.dart';
 import 'tabs/order.dart';
 import 'tabs/layanan.dart';
 import 'tabs/user.dart';
 import '../../widgets/weather_widget.dart';
+import '../about_screen.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -28,15 +30,33 @@ class _AdminPageState extends State<AdminPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Admin Smart Laundry",
+          "Admin BallMonDry",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.indigo,
+        backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
-            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutScreen()),
+              );
+            },
+            icon: const Icon(Icons.info_outline),
+            tooltip: "Tentang Aplikasi",
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+                (route) => false,
+              );
+            },
             icon: const Icon(Icons.logout),
+            tooltip: "Logout",
           ),
         ],
       ),
@@ -44,7 +64,7 @@ class _AdminPageState extends State<AdminPage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.indigo,
+        selectedItemColor: Colors.deepPurple,
         unselectedItemColor: Colors.grey,
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [

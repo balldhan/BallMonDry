@@ -65,16 +65,28 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Daftar Akun")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+      backgroundColor: Colors.deepPurple,
+      body: Center(
         child: SingleChildScrollView(
+          padding: const EdgeInsets.all(30),
           child: Column(
             children: [
-              const Icon(Icons.person_add, size: 80, color: Colors.deepPurple),
               const SizedBox(height: 20),
-              TextField(controller: userCtrl, decoration: const InputDecoration(labelText: "Username", prefixIcon: Icon(Icons.person_outline))),
-              const SizedBox(height: 15),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                child: const Icon(Icons.person_add, size: 60, color: Colors.deepPurple),
+              ),
+              const SizedBox(height: 20),
+              const Text("DAFTAR AKUN BARU", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+              const SizedBox(height: 40),
+              Container(
+                padding: const EdgeInsets.all(25),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  children: [
+                    TextField(controller: userCtrl, decoration: const InputDecoration(labelText: "Username", prefixIcon: Icon(Icons.person_outline))),
+                    const SizedBox(height: 15),
               
               // 4. Input Password Utama
               TextField(
@@ -106,11 +118,31 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               const SizedBox(height: 15),
 
-              TextField(controller: telpCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: "No Telepon / WA", prefixIcon: Icon(Icons.phone_android))),
-              const SizedBox(height: 15),
-              TextField(controller: alamatCtrl, maxLines: 2, decoration: const InputDecoration(labelText: "Alamat Lengkap", prefixIcon: Icon(Icons.home_outlined))),
-              const SizedBox(height: 30),
-              SizedBox(width: double.infinity, child: ElevatedButton(onPressed: daftar, style: ElevatedButton.styleFrom(backgroundColor: Colors.green), child: const Text("DAFTAR SEKARANG")))
+                    TextField(controller: telpCtrl, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: "No Telepon / WA", prefixIcon: Icon(Icons.phone_android))),
+                    const SizedBox(height: 15),
+                    TextField(controller: alamatCtrl, maxLines: 2, decoration: const InputDecoration(labelText: "Alamat Lengkap", prefixIcon: Icon(Icons.home_outlined))),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: daftar,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text("DAFTAR SEKARANG", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Sudah punya akun? Login disini", style: TextStyle(color: Colors.white)),
+              ),
             ],
           ),
         ),
