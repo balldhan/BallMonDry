@@ -176,7 +176,7 @@ class _OrderDetailState extends State<OrderDetail> {
                   children: [
                     _buildRow(Icons.person, "Nama", order['username'] ?? '-'),
                     const Divider(),
-                    _buildRow(Icons.phone, "No HP", order['no_telepon'] ?? '-'),
+                    _buildRow(Icons.phone, "No HP", order['no_hp'] ?? '-'),
                     const Divider(),
                     _buildRow(Icons.location_on, "Alamat", order['alamat'] ?? '-'),
                   ],
