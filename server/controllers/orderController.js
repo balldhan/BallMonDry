@@ -49,6 +49,9 @@ const getAllOrders = (req, res) => {
             orders.estimasi,
             orders.tipe_layanan,
             orders.is_pickup,
+            orders.status_pembayaran,
+            orders.metode_pembayaran,
+            orders.bukti_transfer,
             layanan.nama_layanan,
             users.username, 
             users.alamat, 
@@ -235,7 +238,7 @@ const getAdminStats = (req, res) => {
     
     const sql = `
         SELECT 
-            COALESCE(SUM(CASE WHEN status != 'menunggu konfirmasi' THEN total_harga ELSE 0 END), 0) as total_pendapatan,
+            COALESCE(SUM(CASE WHEN status_pembayaran = 'Lunas' THEN total_harga ELSE 0 END), 0) as total_pendapatan,
             SUM(CASE WHEN status != 'menunggu konfirmasi' THEN 1 ELSE 0 END) as total_order,
             SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) as order_selesai,
             SUM(CASE WHEN status NOT IN ('selesai', 'menunggu konfirmasi') THEN 1 ELSE 0 END) as order_proses
@@ -264,6 +267,154 @@ const getAdminStats = (req, res) => {
     });
 };
 
+// PILIH METODE PEMBAYARAN
+const pilihMetodePembayaran = (req, res) => {
+    const { order_id, metode_pembayaran } = req.body;
+    
+    if (!order_id || !metode_pembayaran) {
+        return res.status(400).json({ 
+            message: 'Order ID dan metode pembayaran harus diisi' 
+        });
+    }
+    
+    // Validasi metode pembayaran
+    if (!['COD', 'Transfer Bank'].includes(metode_pembayaran)) {
+        return res.status(400).json({ 
+            message: 'Metode pembayaran tidak valid' 
+        });
+    }
+    
+    // Update metode pembayaran
+    const sql = "UPDATE orders SET metode_pembayaran = ? WHERE id = ?";
+    
+    db.query(sql, [metode_pembayaran, order_id], (err, result) => {
+        if (err) {
+            console.error('Update payment method error:', err);
+            return res.status(500).json({ 
+                message: 'Gagal update metode pembayaran' 
+            });
+        }
+        
+        res.json({ 
+            message: 'Metode pembayaran berhasil dipilih',
+            metode: metode_pembayaran
+        });
+    });
+};
+
+// UPLOAD BUKTI TRANSFER
+const uploadBuktiTransfer = (req, res) => {
+    const { order_id, bukti_transfer } = req.body;
+    
+    if (!order_id || !bukti_transfer) {
+        return res.status(400).json({ 
+            message: 'Order ID dan bukti transfer harus diisi' 
+        });
+    }
+    
+    // Simpan base64 image langsung ke database
+    // Format: data:image/jpeg;base64,/9j/4AAQSkZJRg...
+    const sql = `UPDATE orders 
+                 SET bukti_transfer = ?, status_pembayaran = 'Menunggu Verifikasi' 
+                 WHERE id = ?`;
+    
+    db.query(sql, [bukti_transfer, order_id], (err, result) => {
+        if (err) {
+            console.error('Upload bukti transfer error:', err);
+            return res.status(500).json({ 
+                message: 'Gagal upload bukti transfer' 
+            });
+        }
+        
+        res.json({ 
+            message: 'Bukti transfer berhasil diupload',
+            status_pembayaran: 'Menunggu Verifikasi'
+        });
+    });
+};
+
+// VERIFIKASI PEMBAYARAN (ADMIN)
+const verifikasiPembayaran = (req, res) => {
+    const { order_id, status_pembayaran, jumlah_dibayar } = req.body;
+    
+    if (!order_id || !status_pembayaran) {
+        return res.status(400).json({ 
+            message: 'Order ID dan status pembayaran harus diisi' 
+        });
+    }
+    
+    // Validasi status pembayaran
+    if (!['Lunas', 'Belum Bayar'].includes(status_pembayaran)) {
+        return res.status(400).json({ 
+            message: 'Status pembayaran tidak valid' 
+        });
+    }
+    
+    // Jika status Lunas dan ada jumlah_dibayar (untuk COD), hitung kembalian
+    if (status_pembayaran === 'Lunas' && jumlah_dibayar) {
+        // Ambil total_harga dari order untuk hitung kembalian
+        const sqlGetOrder = "SELECT total_harga FROM orders WHERE id = ?";
+        
+        db.query(sqlGetOrder, [order_id], (errGet, resultGet) => {
+            if (errGet || resultGet.length === 0) {
+                return res.status(500).json({ 
+                    message: 'Gagal mengambil data order' 
+                });
+            }
+            
+            const totalHarga = resultGet[0].total_harga;
+            const kembalian = parseFloat(jumlah_dibayar) - parseFloat(totalHarga);
+            
+            // Validasi: jumlah dibayar harus >= total harga
+            if (kembalian < 0) {
+                return res.status(400).json({ 
+                    message: 'Jumlah dibayar tidak boleh kurang dari total harga',
+                    total_harga: totalHarga,
+                    jumlah_dibayar: jumlah_dibayar
+                });
+            }
+            
+            // Update dengan jumlah_dibayar dan kembalian
+            const sqlUpdate = `UPDATE orders 
+                              SET status_pembayaran = ?, jumlah_dibayar = ?, kembalian = ? 
+                              WHERE id = ?`;
+            
+            db.query(sqlUpdate, [status_pembayaran, jumlah_dibayar, kembalian, order_id], (errUp, resUp) => {
+                if (errUp) {
+                    console.error('Verifikasi pembayaran error:', errUp);
+                    return res.status(500).json({ 
+                        message: 'Gagal verifikasi pembayaran' 
+                    });
+                }
+                
+                res.json({ 
+                    message: 'Pembayaran berhasil diverifikasi',
+                    status_pembayaran: status_pembayaran,
+                    jumlah_dibayar: jumlah_dibayar,
+                    kembalian: kembalian
+                });
+            });
+        });
+    } else {
+        // Tanpa jumlah_dibayar (untuk Transfer Bank atau reject)
+        const sql = "UPDATE orders SET status_pembayaran = ? WHERE id = ?";
+        
+        db.query(sql, [status_pembayaran, order_id], (err, result) => {
+            if (err) {
+                console.error('Verifikasi pembayaran error:', err);
+                return res.status(500).json({ 
+                    message: 'Gagal verifikasi pembayaran' 
+                });
+            }
+            
+            res.json({ 
+                message: 'Pembayaran berhasil diverifikasi',
+                status_pembayaran: status_pembayaran
+            });
+        });
+    }
+};
+
 module.exports = {
     createOrder,
     getAllOrders,
@@ -271,5 +422,8 @@ module.exports = {
     updateOrderByClient,
     deleteOrder,
     updateOrderByAdmin,
-    getAdminStats
+    getAdminStats,
+    pilihMetodePembayaran,
+    uploadBuktiTransfer,
+    verifikasiPembayaran
 };

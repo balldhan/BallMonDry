@@ -17,4 +17,9 @@ router.put('/update', orderController.updateOrderByAdmin);
 // Cancel/delete order (CLIENT)
 router.delete('/:id', orderController.deleteOrder);
 
+// Payment endpoints
+router.post('/payment/metode', orderController.pilihMetodePembayaran);
+router.post('/payment/upload-bukti', orderController.uploadBuktiTransfer);
+router.post('/payment/verifikasi', orderController.verifikasiPembayaran);
+
 module.exports = router;

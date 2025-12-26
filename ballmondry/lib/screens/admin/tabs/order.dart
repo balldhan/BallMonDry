@@ -21,6 +21,7 @@ class _OrderState extends State<Order> {
   TextEditingController searchController = TextEditingController();
   String selectedStatus = 'semua';
   String selectedPeriod = 'semua';
+  String selectedPaymentStatus = 'semua';
 
   @override
   void initState() {
@@ -64,6 +65,10 @@ class _OrderState extends State<Order> {
         // Filter by status
         bool matchStatus = selectedStatus == 'semua' || order['status'] == selectedStatus;
 
+        // Filter by payment status
+        bool matchPaymentStatus = selectedPaymentStatus == 'semua' || 
+                                  order['status_pembayaran'] == selectedPaymentStatus;
+
         // Filter by period
         bool matchPeriod = true;
         if (selectedPeriod != 'semua' && order['tgl_order'] != null) {
@@ -90,7 +95,7 @@ class _OrderState extends State<Order> {
           }
         }
 
-        return matchSearch && matchStatus && matchPeriod;
+        return matchSearch && matchStatus && matchPaymentStatus && matchPeriod;
       }).toList();
     });
   }
@@ -145,12 +150,14 @@ class _OrderState extends State<Order> {
                 
                 const SizedBox(height: 12),
                 
-                // Filter Dropdowns
-                Row(
-                  children: [
-                    // Status Dropdown
-                    Expanded(
-                      child: Container(
+                // Filter Dropdowns - Scrollable
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      // Status Dropdown
+                      Container(
+                        width: 150,
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
@@ -166,7 +173,7 @@ class _OrderState extends State<Order> {
                             items: const [
                               DropdownMenuItem(value: 'semua', child: Text('📋 Semua Status')),
                               DropdownMenuItem(value: 'menunggu konfirmasi', child: Text('⏳ Menunggu')),
-                              DropdownMenuItem(value: 'dikonfirmasi', child: Text('✅ Dikonfirmasi')),
+                              DropdownMenuItem(value: 'konfirmasi', child: Text('✅ Dikonfirmasi')),
                               DropdownMenuItem(value: 'dijemput', child: Text('🚗 Dijemput')),
                               DropdownMenuItem(value: 'diproses', child: Text('⚙️ Diproses')),
                               DropdownMenuItem(value: 'selesai', child: Text('✔️ Selesai')),
@@ -180,13 +187,12 @@ class _OrderState extends State<Order> {
                           ),
                         ),
                       ),
-                    ),
-                    
-                    const SizedBox(width: 10),
-                    
-                    // Period Dropdown
-                    Expanded(
-                      child: Container(
+                      
+                      const SizedBox(width: 10),
+                      
+                      // Period Dropdown
+                      Container(
+                        width: 150,
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
@@ -214,8 +220,41 @@ class _OrderState extends State<Order> {
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      
+                      const SizedBox(width: 10),
+                      
+                      // Payment Status Dropdown
+                      Container(
+                        width: 150,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: selectedPaymentStatus,
+                            isExpanded: true,
+                            icon: const Icon(Icons.arrow_drop_down, color: Colors.deepPurple),
+                            style: const TextStyle(color: Colors.black87, fontSize: 14),
+                            items: const [
+                              DropdownMenuItem(value: 'semua', child: Text('💳 Semua Pembayaran')),
+                              DropdownMenuItem(value: 'Belum Bayar', child: Text('❌ Belum Bayar')),
+                              DropdownMenuItem(value: 'Menunggu Verifikasi', child: Text('⏳ Menunggu Verifikasi')),
+                              DropdownMenuItem(value: 'Lunas', child: Text('✅ Lunas')),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                selectedPaymentStatus = value!;
+                                _filterOrders();
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -284,9 +323,55 @@ class _OrderState extends State<Order> {
                               backgroundColor: Colors.deepPurple.shade100,
                               child: const Icon(Icons.receipt_long, color: Colors.deepPurple, size: 24),
                             ),
-                            title: Text(
-                              item['username'] ?? 'User',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            title: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item['username'] ?? 'User',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                ),
+                                // Badge Pembayaran
+                                if (item['status_pembayaran'] != null && 
+                                    item['total_harga'] != null && 
+                                    item['total_harga'] > 0)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: item['status_pembayaran'] == 'Lunas'
+                                          ? Colors.green
+                                          : item['status_pembayaran'] == 'Menunggu Verifikasi'
+                                              ? Colors.orange
+                                              : Colors.red,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          item['status_pembayaran'] == 'Lunas'
+                                              ? Icons.check_circle
+                                              : Icons.payment,
+                                          color: Colors.white,
+                                          size: 10,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          item['status_pembayaran'] == 'Lunas'
+                                              ? 'LUNAS'
+                                              : item['status_pembayaran'] == 'Menunggu Verifikasi'
+                                                  ? 'VERIF'
+                                                  : 'BAYAR',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
                             ),
                             subtitle: Text(
                               "${item['nama_layanan']} - ${item['status']}\n$tanggalFormatted",
