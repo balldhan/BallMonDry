@@ -1,6 +1,6 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
-import 'screens/auth/login_page.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -31,6 +31,6 @@ void main() {
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       ),
     ),
-    home: const LoginPage(),
+    home: const SplashScreen(),
   ));
 }

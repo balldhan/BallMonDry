@@ -55,7 +55,17 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
+                ),
                 child: const Icon(Icons.local_laundry_service, size: 60, color: Colors.deepPurple),
               ),
               const SizedBox(height: 20),
