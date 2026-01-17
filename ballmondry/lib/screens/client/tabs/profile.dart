@@ -68,6 +68,9 @@ class _ProfileTabState extends State<ProfileTab> {
           lng = data['longitude'] != null ? double.parse(data['longitude'].toString()) : null;
           isLoading = false;
         });
+      } else {
+        print("Failed to load user data: ${response.statusCode}");
+        setState(() => isLoading = false);
       }
     } catch (e) {
       print("Error fetch profile: $e");
