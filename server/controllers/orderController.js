@@ -55,7 +55,9 @@ const getAllOrders = (req, res) => {
             layanan.nama_layanan,
             users.username, 
             users.alamat, 
-            users.no_hp
+            users.no_hp,
+            users.latitude,
+            users.longitude
         FROM orders
         JOIN users ON orders.user_id = users.id
         JOIN layanan ON orders.layanan_id = layanan.id

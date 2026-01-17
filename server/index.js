@@ -1,12 +1,21 @@
+require('dotenv').config(); // Load environment variables
 const express = require('express');
 const mysql = require('mysql');
 const cors = require('cors');
+const sharedRoutes = require('./routes/sharedRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+
 const app = express();
 
 
 app.use(cors());
 app.use(express.json());
 
+// --- ROUTES DARI CONTROLLER ---
+app.use('/admin', sharedRoutes); // Untuk stats
+app.use('/orders', orderRoutes); // Untuk manajemen order
+
+// --- DATABASE CONNECTION (LEGACY FOR AUTH) ---
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -15,8 +24,11 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
-    if (err) throw err;
-    console.log('Database Connected!');
+    if (err) {
+        console.error('Legacy DB Connection Error:', err);
+    } else {
+        console.log('✅ Main Database Connected!');
+    }
 });
 
 // --- AUTH & USER ---
@@ -112,31 +124,7 @@ app.get('/orders', (req, res) => {
     });
 });
 
-app.get('/admin/stats', (req, res) => {
-    const sql = `SELECT 
-            COALESCE(SUM(CASE WHEN status = 'selesai' THEN total_harga ELSE 0 END), 0) as total_pendapatan,
-            COUNT(*) as total_order,
-            SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) as order_selesai,
-            SUM(CASE WHEN status = 'proses' THEN 1 ELSE 0 END) as order_proses
-        FROM orders`;
-    db.query(sql, (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.json(result[0]);
-    });
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server BallMonDry running on port ${PORT}`);
 });
-
-app.put('/order/update', (req, res) => {
-    const { order_id, status, berat, estimasi } = req.body;
-    const sqlGet = "SELECT harga_per_kg FROM orders JOIN layanan ON orders.layanan_id = layanan.id WHERE orders.id = ?";
-    db.query(sqlGet, [order_id], (err, results) => {
-        if (err || results.length === 0) return res.status(500).json({message: 'Gagal'});
-        const total = berat * results[0].harga_per_kg;
-        const sqlUpdate = "UPDATE orders SET status = ?, berat = ?, total_harga = ?, estimasi = ? WHERE id = ?";
-        db.query(sqlUpdate, [status, berat, total, estimasi, order_id], (errUp) => {
-            if (errUp) return res.status(500).json(errUp);
-            res.json({ status: 'success' });
-        });
-    });
-});
-
-app.listen(3000, () => console.log('Server BallMonDry running on port 3000'));
