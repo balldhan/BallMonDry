@@ -233,38 +233,119 @@ const updateOrderByAdmin = (req, res) => {
 };
 
 // GET ADMIN STATS
-const getAdminStats = (req, res) => {
+const getAdminStats = async (req, res) => {
     console.log('📊 GET /admin/stats dipanggil');
     
-    const sql = `
-        SELECT 
-            COALESCE(SUM(CASE WHEN status_pembayaran = 'Lunas' THEN total_harga ELSE 0 END), 0) as total_pendapatan,
-            SUM(CASE WHEN status != 'menunggu konfirmasi' THEN 1 ELSE 0 END) as total_order,
-            SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) as order_selesai,
-            SUM(CASE WHEN status NOT IN ('selesai', 'menunggu konfirmasi') THEN 1 ELSE 0 END) as order_proses
-        FROM orders
-    `;
-    
-    db.query(sql, (err, result) => {
-        if (err) {
-            console.error('❌ Get stats error:', err);
-            return res.status(500).json({ 
-                message: 'Gagal mengambil statistik',
-                error: err.message
+    // Promisify helper
+    const query = (sql, values) => {
+        return new Promise((resolve, reject) => {
+            db.query(sql, values, (err, results) => {
+                if (err) reject(err);
+                else resolve(results);
             });
-        }
-        
-        // Pastikan selalu return object dengan default values
-        const stats = result && result[0] ? result[0] : {
-            total_pendapatan: 0,
-            total_order: 0,
-            order_selesai: 0,
-            order_proses: 0
+        });
+    };
+
+    try {
+        // 1. Summary Stats
+        const summarySql = `
+            SELECT 
+                COALESCE(SUM(CASE WHEN status_pembayaran = 'Lunas' THEN total_harga ELSE 0 END), 0) as total_pendapatan,
+                SUM(CASE WHEN status != 'menunggu konfirmasi' THEN 1 ELSE 0 END) as total_order,
+                SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) as order_selesai,
+                SUM(CASE WHEN status NOT IN ('selesai', 'menunggu konfirmasi') THEN 1 ELSE 0 END) as order_proses
+            FROM orders
+        `;
+
+        // 2. Revenue Trends
+        // Daily (Last 7 days)
+        const dailySql = `
+            SELECT DATE_FORMAT(tgl_order, '%Y-%m-%d') as date, COALESCE(SUM(total_harga), 0) as total 
+            FROM orders 
+            WHERE tgl_order >= DATE(NOW() - INTERVAL 6 DAY) AND status_pembayaran = 'Lunas'
+            GROUP BY DATE_FORMAT(tgl_order, '%Y-%m-%d')
+            ORDER BY date ASC
+        `;
+
+        // Weekly (Last 4 weeks)
+        const weeklySql = `
+            SELECT YEARWEEK(tgl_order, 1) as week, COALESCE(SUM(total_harga), 0) as total
+            FROM orders
+            WHERE tgl_order >= DATE(NOW() - INTERVAL 4 WEEK) AND status_pembayaran = 'Lunas'
+            GROUP BY YEARWEEK(tgl_order, 1)
+            ORDER BY week ASC
+        `;
+
+        // Monthly (Last 6 months)
+        const monthlySql = `
+            SELECT DATE_FORMAT(tgl_order, '%Y-%m') as month, COALESCE(SUM(total_harga), 0) as total
+            FROM orders
+            WHERE tgl_order >= DATE(NOW() - INTERVAL 5 MONTH) AND status_pembayaran = 'Lunas'
+            GROUP BY DATE_FORMAT(tgl_order, '%Y-%m')
+            ORDER BY month ASC
+        `;
+
+        // 3. Status Breakdown
+        const statusSql = `SELECT status, COUNT(*) as count FROM orders GROUP BY status`;
+
+        // 4. Service Breakdown
+        const serviceSql = `
+            SELECT l.nama_layanan, COUNT(*) as count 
+            FROM orders o 
+            JOIN layanan l ON o.layanan_id = l.id 
+            GROUP BY l.nama_layanan 
+            ORDER BY count DESC 
+            LIMIT 5
+        `;
+
+        // 5. Type Breakdown (Regular/Express)
+        const typeSql = `SELECT tipe_layanan, COUNT(*) as count FROM orders GROUP BY tipe_layanan`;
+
+        // 6. Pickup Breakdown
+        const pickupSql = `SELECT is_pickup, COUNT(*) as count FROM orders GROUP BY is_pickup`;
+
+        const [
+            summary, 
+            dailyRevenue, 
+            weeklyRevenue,
+            monthlyRevenue, 
+            statusStats, 
+            serviceStats, 
+            typeStats, 
+            pickupStats
+        ] = await Promise.all([
+            query(summarySql),
+            query(dailySql),
+            query(weeklySql),
+            query(monthlySql),
+            query(statusSql),
+            query(serviceSql),
+            query(typeSql),
+            query(pickupSql)
+        ]);
+
+        const stats = {
+            ...summary[0],
+            revenue_chart: {
+                daily: dailyRevenue,
+                weekly: weeklyRevenue,
+                monthly: monthlyRevenue
+            },
+            status_breakdown: statusStats,
+            service_breakdown: serviceStats,
+            type_breakdown: typeStats,
+            pickup_breakdown: pickupStats
         };
         
         console.log('✅ Stats result:', stats);
         res.json(stats);
-    });
+    } catch (err) {
+        console.error('❌ Get stats error:', err);
+        return res.status(500).json({ 
+            message: 'Gagal mengambil statistik',
+            error: err.message
+        });
+    }
 };
 
 // PILIH METODE PEMBAYARAN
