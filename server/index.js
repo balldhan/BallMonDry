@@ -3,6 +3,7 @@ const mysql = require('mysql');
 const cors = require('cors');
 const app = express();
 
+
 app.use(cors());
 app.use(express.json());
 
@@ -34,12 +35,21 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
-    const { username, password, alamat } = req.body;
-    if (!username || !password || !alamat) return res.status(400).json({ message: 'Lengkapilah data!' });
-    const sql = "INSERT INTO users (username, password, role, alamat) VALUES (?, ?, 'client', ?)";
-    db.query(sql, [username, password, alamat], (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.json({ status: 'success', message: 'User berhasil dibuat' });
+    // Tambahkan latitude dan longitude di req.body
+    const { username, password, alamat, latitude, longitude } = req.body;
+    
+    if (!username || !password || !alamat) {
+        return res.status(400).json({ message: 'Semua kolom wajib diisi!' });
+    }
+
+    const sql = "INSERT INTO users (username, password, role, alamat, latitude, longitude) VALUES (?, ?, 'client', ?, ?, ?)";
+    
+    db.query(sql, [username, password, alamat, latitude, longitude], (err, result) => {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ message: 'Username sudah ada!' });
+            return res.status(500).json({ message: 'Gagal daftar', detail: err.sqlMessage });
+        }
+        res.json({ status: 'success', message: 'Akun berhasil dibuat' });
     });
 });
 
