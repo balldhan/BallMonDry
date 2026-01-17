@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart'; // Import LatLong
+import '../client/osm_picker_page.dart'; // Import OSM Picker Page
 import '../../../config.dart';
 
 class OrderDetail extends StatefulWidget {
@@ -462,7 +464,67 @@ class _OrderDetailState extends State<OrderDetail> {
                     const Divider(),
                     _buildRow(Icons.phone, "No HP", order['no_hp'] ?? '-'),
                     const Divider(),
-                    _buildRow(Icons.location_on, "Alamat", order['alamat'] ?? '-'),
+                    // Custom Row for Alamat with Map Button
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.location_on, size: 20, color: Colors.grey),
+                          const SizedBox(width: 15),
+                          const SizedBox(width: 100, child: Text("Alamat", style: TextStyle(color: Colors.grey))),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(order['alamat'] ?? '-', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                                if (order['latitude'] != null && order['longitude'] != null) ...[
+                                  const SizedBox(height: 8),
+                                  InkWell(
+                                    onTap: () {
+                                      double? lat = double.tryParse(order['latitude'].toString());
+                                      double? lng = double.tryParse(order['longitude'].toString());
+                                      if (lat != null && lng != null) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => OSMPickerPage(
+                                              isViewOnly: true,
+                                              lat: lat,
+                                              lng: lng,
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text("Koordinat tidak valid")),
+                                        );
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade50,
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(color: Colors.blue.shade200),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          Icon(Icons.map_outlined, size: 16, color: Colors.blue),
+                                          SizedBox(width: 6),
+                                          Text("Buka di Peta", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 13)),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                ]
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -4,7 +4,11 @@ import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
 
 class OSMPickerPage extends StatefulWidget {
-  const OSMPickerPage({super.key});
+  final double? lat;
+  final double? lng;
+  final bool isViewOnly;
+
+  const OSMPickerPage({super.key, this.lat, this.lng, this.isViewOnly = false});
 
   @override
   State<OSMPickerPage> createState() => _OSMPickerPageState();
@@ -13,6 +17,18 @@ class OSMPickerPage extends StatefulWidget {
 class _OSMPickerPageState extends State<OSMPickerPage> {
   LatLng _currentPosition = const LatLng(-6.2000, 106.8166); // Default Jakarta
   String _address = "Geser peta untuk memilih lokasi";
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.lat != null && widget.lng != null) {
+      _currentPosition = LatLng(widget.lat!, widget.lng!);
+      if (widget.isViewOnly) {
+         _address = "Lokasi User"; 
+         // Optional: _getAddress(_currentPosition) if we want to reverse geocode again
+      }
+    }
+  }
 
   Future<void> _getAddress(LatLng pos) async {
     try {
@@ -29,14 +45,14 @@ class _OSMPickerPageState extends State<OSMPickerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Pilih Lokasi (OSM)")),
+      appBar: AppBar(title: Text(widget.isViewOnly ? "Lokasi User" : "Pilih Lokasi (OSM)")),
       body: Stack(
         children: [
           FlutterMap(
             options: MapOptions(
               initialCenter: _currentPosition,
               initialZoom: 15,
-              onTap: (tapPosition, point) {
+              onTap: widget.isViewOnly ? null : (tapPosition, point) {
                 setState(() => _currentPosition = point);
                 _getAddress(point);
               },
@@ -66,14 +82,15 @@ class _OSMPickerPageState extends State<OSMPickerPage> {
                   children: [
                     Text(_address, style: const TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
                     const SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context, {
-                        'lat': _currentPosition.latitude,
-                        'lng': _currentPosition.longitude,
-                        'address': _address,
-                      }),
-                      child: const Text("Gunakan Alamat Ini"),
-                    )
+                    if (!widget.isViewOnly)
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, {
+                          'lat': _currentPosition.latitude,
+                          'lng': _currentPosition.longitude,
+                          'address': _address,
+                        }),
+                        child: const Text("Gunakan Alamat Ini"),
+                      )
                   ],
                 ),
               ),
