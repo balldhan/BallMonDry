@@ -33,10 +33,11 @@ class _OrderTabState extends State<OrderTab> {
     try {
       final response = await http.get(Uri.parse('${Config.baseUrl}/layanan'));
       if (response.statusCode == 200) {
-        if (mounted)
+        if (mounted) {
           setState(() {
             layananList = jsonDecode(response.body);
           });
+        }
       }
     } catch (e) {
       print("Error fetch layanan: $e");
@@ -50,10 +51,11 @@ class _OrderTabState extends State<OrderTab> {
         Uri.parse('${Config.baseUrl}/history/${widget.userId}'),
       );
       if (response.statusCode == 200) {
-        if (mounted)
+        if (mounted) {
           setState(() {
             riwayat = jsonDecode(response.body);
           });
+        }
       }
     } catch (e) {
       print("Error fetch riwayat: $e");
@@ -156,10 +158,11 @@ class _OrderTabState extends State<OrderTab> {
         }
       } else {
         var msg = jsonDecode(response.body)['message'];
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(msg), backgroundColor: Colors.red),
           );
+        }
       }
     } catch (e) {
       print(e);
@@ -174,19 +177,21 @@ class _OrderTabState extends State<OrderTab> {
       );
       if (response.statusCode == 200) {
         fetchRiwayat();
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Pesanan dibatalkan"),
               backgroundColor: Colors.orange,
             ),
           );
+        }
       } else {
         var msg = jsonDecode(response.body)['message'];
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(msg), backgroundColor: Colors.red),
           );
+        }
       }
     } catch (e) {
       print(e);
@@ -506,7 +511,7 @@ class _OrderTabState extends State<OrderTab> {
                             : "Antar sendiri ke outlet",
                       ),
                       value: isPickup,
-                      activeColor: Colors.deepPurple,
+                      activeThumbColor: Colors.deepPurple,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (val) => setStateDialog(() => isPickup = val),
                     ),

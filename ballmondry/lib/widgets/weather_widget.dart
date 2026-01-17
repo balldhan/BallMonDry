@@ -38,7 +38,9 @@ class _WeatherWidgetState extends State<WeatherWidget> {
         List rawData = json['data'][0]['cuaca'];
         List flattened = [];
         for (var list in rawData) {
-          for (var item in list) flattened.add(item);
+          for (var item in list) {
+            flattened.add(item);
+          }
         }
 
         // 2. Urutkan Waktu

@@ -147,7 +147,7 @@ class _OrderDetailState extends State<OrderDetail> {
             children: [
               // PERBAIKAN OVERFLOW: isExpanded: true
               DropdownButtonFormField<String>(
-                value: selectedStatus,
+                initialValue: selectedStatus,
                 isExpanded: true, // AGAR TIDAK OVERFLOW KE SAMPING
                 items: statuses.map((s) => DropdownMenuItem(
                   value: s, 
