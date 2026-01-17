@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../chat/admin_chat_list_page.dart'; // Import Chat List
 import '../auth/login_page.dart'; // <--- 1. Pastikan meng-import halaman Login
 import 'tabs/dashboard.dart';
 import 'tabs/order.dart';
@@ -37,6 +38,16 @@ class _AdminPageState extends State<AdminPage> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminChatListPage()),
+              );
+            },
+            icon: const Icon(Icons.chat),
+            tooltip: "Chat Pelanggan",
+          ),
           IconButton(
             onPressed: () {
               Navigator.push(

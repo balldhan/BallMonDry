@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "747903478983",
+    "firebase_url": "https://ballmondry-default-rtdb.firebaseio.com",
+    "project_id": "ballmondry",
+    "storage_bucket": "ballmondry.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:747903478983:android:5979c7f44f24c6ccafa2e2",
+        "android_client_info": {
+          "package_name": "com.example.ballmondry"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWl_BK7_r35Mnlc0GjF7CWOLPqmjRRcFs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
