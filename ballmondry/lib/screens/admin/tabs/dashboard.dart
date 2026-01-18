@@ -657,7 +657,7 @@ class _DashboardTabState extends State<DashboardTab> with TickerProviderStateMix
            runSpacing: 4,
            children: [
              Indicator(color: Colors.purpleAccent, text: "Jemput"),
-             Indicator(color: Colors.teal, text: "Antar")
+             Indicator(color: Colors.teal, text: "Drop off")
            ],
         ),
       ],

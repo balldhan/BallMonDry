@@ -145,7 +145,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 10),
                   SelectableText(
-                    "https://youtu.be/", // Ganti dengan link youtube asli
+                    "https://youtu.be/o2KAltdgH-g", // Ganti dengan link youtube asli
                     style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic, fontSize: 13),
                   ),
                 ],
