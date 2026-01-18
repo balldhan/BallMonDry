@@ -24,7 +24,8 @@ class _DashboardTabState extends State<DashboardTab> with TickerProviderStateMix
   // State untuk Pie Chart Interactivity
   int selectedPieIndex = -1;
   int selectedDonutIndex = -1;
-  int selectedDeliveryIndex = -1; // State untuk grafik baru
+  int selectedDeliveryIndex = -1; // State untuk grafik pickup
+  int selectedPaymentIndex = -1; // State untuk grafik payment (BARU)
   
   // Animation controllers
   AnimationController? _animationController;
@@ -426,18 +427,30 @@ class _DashboardTabState extends State<DashboardTab> with TickerProviderStateMix
         
         const SizedBox(height: 12),
 
-        // Baris 2: Metode Antar / Jemput (Full Width agar jelas)
-        _buildChartCard("Metode Antar / Jemput", _buildDeliveryMethodChart(), height: 250),
+        // Baris 2: Metode Antar / Jemput & Pembayaran
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildChartCard("Metode Antar / Jemput", _buildDeliveryMethodChart(), height: 250)),
+            const SizedBox(width: 12),
+            Expanded(child: _buildChartCard("Metode Pembayaran", _buildPaymentMethodChart(), height: 250)),
+          ],
+        ),
       ],
     );
   }
 
-  // Grafik 1: Status Order (Diperkecil Radiusnya)
+  // Grafik 1: Status Order (Full Breakdown)
   Widget _buildOrderStatusPieChart() {
-    final orderSelesai = (stats['order_selesai'] ?? 0).toDouble();
-    final orderProses = (stats['order_proses'] ?? 0).toDouble();
-    final totalOrder = orderSelesai + orderProses;
+    final statusData = (stats['status_breakdown'] as List?) ?? [];
     
+    if (statusData.isEmpty) return const Center(child: Text("Tidak ada data", style: TextStyle(color: Colors.grey)));
+
+    double totalOrder = 0;
+    for (var item in statusData) {
+      totalOrder += double.tryParse(item['count'].toString()) ?? 0;
+    }
+
     if (totalOrder == 0) return const Center(child: Text("Tidak ada data", style: TextStyle(color: Colors.grey)));
 
     return Column(
@@ -457,38 +470,56 @@ class _DashboardTabState extends State<DashboardTab> with TickerProviderStateMix
                 },
               ),
               sectionsSpace: 2, 
-              centerSpaceRadius: 30, // DIPERKECIL (sebelumnya 40)
-              sections: [
-                PieChartSectionData(
-                  value: orderSelesai, 
-                  title: '${((orderSelesai/totalOrder)*100).toInt()}%', 
-                  color: Colors.green, 
-                  radius: selectedPieIndex == 0 ? 50 : 40, // DIPERKECIL (sebelumnya 60/50)
+              centerSpaceRadius: 30,
+              sections: statusData.asMap().entries.map((entry) {
+                int index = entry.key;
+                var item = entry.value;
+                double count = double.tryParse(item['count'].toString()) ?? 0;
+                String status = (item['status'] ?? '').toString();
+                Color color = _getStatusColor(status);
+
+                return PieChartSectionData(
+                  value: count, 
+                  title: '${((count/totalOrder)*100).toInt()}%', 
+                  color: color, 
+                  radius: selectedPieIndex == index ? 50 : 40,
                   titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)
-                ),
-                PieChartSectionData(
-                  value: orderProses, 
-                  title: '${((orderProses/totalOrder)*100).toInt()}%', 
-                  color: Colors.orange, 
-                  radius: selectedPieIndex == 1 ? 50 : 40, // DIPERKECIL
-                  titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)
-                ),
-              ],
+                );
+              }).toList(),
             ),
           ),
         ),
         const SizedBox(height: 10),
-        const Wrap(
+        Wrap(
           alignment: WrapAlignment.center,
           spacing: 8,
           runSpacing: 4,
-          children: [
-            Indicator(color: Colors.green, text: "Selesai"),
-            Indicator(color: Colors.orange, text: "Proses")
-          ],
+          children: statusData.map((item) {
+            String status = item['status']?.toString() ?? '-';
+            return Indicator(color: _getStatusColor(status), text: _formatStatus(status));
+          }).toList(),
         ),
       ],
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'menunggu konfirmasi': return Colors.grey;
+      case 'dijemput': return Colors.blue;
+      case 'antrean': return Colors.amber;
+      case 'proses cuci': return Colors.orange;
+      case 'siap antar': return Colors.cyan;
+      case 'pengantaran': return Colors.indigo;
+      case 'selesai': return Colors.green;
+      case 'dibatalkan': return Colors.red;
+      default: return Colors.purple;
+    }
+  }
+
+  String _formatStatus(String status) {
+    if (status.length <= 1) return status;
+    return "${status[0].toUpperCase()}${status.substring(1)}";
   }
 
   // Grafik 2: Tipe Layanan (Reguler/Express) - Diperkecil Radiusnya
@@ -554,7 +585,7 @@ class _DashboardTabState extends State<DashboardTab> with TickerProviderStateMix
     );
   }
 
-  // Grafik 3: Metode Antar / Jemput (BARU)
+  // Grafik 3: Metode Antar / Jemput
   Widget _buildDeliveryMethodChart() {
     // Menggunakan data 'pickup_breakdown' dari API yang sudah tersedia
     final pickupData = (stats['pickup_breakdown'] as List?) ?? [];
@@ -582,68 +613,141 @@ class _DashboardTabState extends State<DashboardTab> with TickerProviderStateMix
       return const Center(child: Text("Belum ada data metode", style: TextStyle(color: Colors.grey)));
     }
 
-    return Row(
+    return Column(
       children: [
-        // Bagian Grafik Pie
         Expanded(
-          flex: 3,
-          child: AspectRatio(
-            aspectRatio: 1.2,
-            child: PieChart(
-              PieChartData(
-                pieTouchData: PieTouchData(
-                  touchCallback: (event, response) {
-                    setState(() {
-                      if (!event.isInterestedForInteractions || response == null || response.touchedSection == null) {
-                        selectedDeliveryIndex = -1;
-                        return;
-                      }
-                      selectedDeliveryIndex = response.touchedSection!.touchedSectionIndex;
-                    });
-                  },
-                ),
-                sectionsSpace: 2,
-                centerSpaceRadius: 45, // Diperbesar dari 40 agar lebih lega
-                sections: [
-                  PieChartSectionData(
-                    value: antarJemput,
-                    title: '${((antarJemput/total)*100).toInt()}%',
-                    titlePositionPercentageOffset: 0.25, // Move text closer to inner center
-                    color: Colors.purpleAccent,
-                    radius: selectedDeliveryIndex == 0 ? 55 : 45,
-                    titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                    badgeWidget: _Badge(Icons.delivery_dining, size: selectedDeliveryIndex == 0 ? 25 : 22, color: Colors.purple.shade900),
-                    badgePositionPercentageOffset: 0.7, // pull deeper to prevent overflow
-                  ),
-                  PieChartSectionData(
-                    value: dropOff,
-                    title: '${((dropOff/total)*100).toInt()}%',
-                    titlePositionPercentageOffset: 0.25,
-                    color: Colors.teal,
-                    radius: selectedDeliveryIndex == 1 ? 55 : 45,
-                    titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
-                    badgeWidget: _Badge(Icons.storefront, size: selectedDeliveryIndex == 1 ? 25 : 22, color: Colors.teal.shade900),
-                    badgePositionPercentageOffset: 0.7, // pull deeper to prevent overflow
-                  ),
-                ],
+          child: PieChart(
+            PieChartData(
+              pieTouchData: PieTouchData(
+                touchCallback: (event, response) {
+                  setState(() {
+                    if (!event.isInterestedForInteractions || response == null || response.touchedSection == null) {
+                      selectedDeliveryIndex = -1;
+                      return;
+                    }
+                    selectedDeliveryIndex = response.touchedSection!.touchedSectionIndex;
+                  });
+                },
               ),
+              sectionsSpace: 2, 
+              centerSpaceRadius: 30,
+              sections: [
+                PieChartSectionData(
+                  value: antarJemput, 
+                  title: '${((antarJemput/total)*100).toInt()}%', 
+                  color: Colors.purpleAccent, 
+                  radius: selectedDeliveryIndex == 0 ? 50 : 40,
+                  titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)
+                ),
+                PieChartSectionData(
+                  value: dropOff, 
+                  title: '${((dropOff/total)*100).toInt()}%', 
+                  color: Colors.teal, 
+                  radius: selectedDeliveryIndex == 1 ? 50 : 40,
+                  titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)
+                ),
+              ],
             ),
           ),
         ),
-        // Tambahkan jarak di sini
-        const SizedBox(width: 20),
-        // Bagian Keterangan (Legend) di sebelah kanan agar layout beda
-        const Expanded(
-          flex: 2,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Indicator(color: Colors.purpleAccent, text: "Antar Jemput", isSquare: true),
-              SizedBox(height: 10),
-              Indicator(color: Colors.teal, text: "Drop Off", isSquare: true),
-            ],
+        const SizedBox(height: 10),
+        const Wrap(
+           alignment: WrapAlignment.center,
+           spacing: 8,
+           runSpacing: 4,
+           children: [
+             Indicator(color: Colors.purpleAccent, text: "Jemput"),
+             Indicator(color: Colors.teal, text: "Antar")
+           ],
+        ),
+      ],
+    );
+  }
+
+  // Grafik 4: Metode Pembayaran (BARU)
+  Widget _buildPaymentMethodChart() {
+    final paymentData = (stats['payment_breakdown'] as List?) ?? [];
+    
+    double cod = 0;
+    double transfer = 0;
+    double other = 0;
+
+    if (paymentData.isNotEmpty) {
+      for (var item in paymentData) {
+        String method = (item['metode_pembayaran'] ?? '').toString().toLowerCase();
+        double count = double.tryParse(item['count'].toString()) ?? 0;
+        
+        if (method.contains('cod')) {
+          cod += count;
+        } else if (method.contains('transfer')) {
+          transfer += count;
+        } else {
+          other += count;
+        }
+      }
+    }
+
+    final total = cod + transfer + other;
+    
+    if (total == 0) return const Center(child: Text("Belum ada data", style: TextStyle(color: Colors.grey)));
+
+    return Column(
+      children: [
+        Expanded(
+          child: PieChart(
+            PieChartData(
+              pieTouchData: PieTouchData(
+                touchCallback: (event, response) {
+                  setState(() {
+                    if (!event.isInterestedForInteractions || response == null || response.touchedSection == null) {
+                      selectedPaymentIndex = -1;
+                      return;
+                    }
+                    selectedPaymentIndex = response.touchedSection!.touchedSectionIndex;
+                  });
+                },
+              ),
+              sectionsSpace: 2, 
+              centerSpaceRadius: 30, // Donut style
+              sections: [
+                if (cod > 0)
+                  PieChartSectionData(
+                    value: cod, 
+                    title: '${((cod/total)*100).toInt()}%', 
+                    color: Colors.amber, 
+                    radius: selectedPaymentIndex == 0 ? 50 : 40,
+                    titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)
+                  ),
+                if (transfer > 0)
+                  PieChartSectionData(
+                    value: transfer, 
+                    title: '${((transfer/total)*100).toInt()}%', 
+                    color: Colors.blueAccent, 
+                    radius: selectedPaymentIndex == 1 ? 50 : 40,
+                    titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)
+                  ),
+                  if (other > 0)
+                   PieChartSectionData(
+                    value: other, 
+                    title: '${((other/total)*100).toInt()}%', 
+                    color: Colors.grey, 
+                    radius: selectedPaymentIndex == 2 ? 50 : 40,
+                    titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)
+                  ),
+              ],
+            ),
           ),
+        ),
+        const SizedBox(height: 10),
+         Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            if (cod > 0) const Indicator(color: Colors.amber, text: "COD"),
+            if (transfer > 0) const Indicator(color: Colors.blueAccent, text: "Transfer"),
+            if (other > 0) const Indicator(color: Colors.grey, text: "Lainnya"),
+          ],
         ),
       ],
     );

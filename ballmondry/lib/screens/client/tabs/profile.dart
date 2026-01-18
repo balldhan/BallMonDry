@@ -84,7 +84,7 @@ class _ProfileTabState extends State<ProfileTab> {
     setState(() => isLoading = true);
     try {
       final response = await http.put(
-        Uri.parse('${Config.baseUrl}/user/update'),
+        Uri.parse('${Config.baseUrl}/users/update'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "id": widget.userId,

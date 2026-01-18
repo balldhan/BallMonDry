@@ -4,7 +4,6 @@ const db = require('../config/database');
 const createOrder = (req, res) => {
     console.log("=== ORDER MASUK ===");
     console.log("Body dari Flutter:", req.body);
-    console.log("Nilai Estimasi:", req.body.estimasi);
 
     const { user_id, layanan_id, tipe_layanan, is_pickup, estimasi } = req.body;
 
@@ -14,13 +13,16 @@ const createOrder = (req, res) => {
         });
     }
 
+    // Pastikan is_pickup dikonversi ke 1 atau 0
+    const isPickupVal = (is_pickup === true || is_pickup === 'true' || is_pickup === 1) ? 1 : 0;
     const estimasiFinal = estimasi ? estimasi : "Belum ditentukan";
 
+    // Default status 'menunggu konfirmasi'
     const sql = `INSERT INTO orders 
                (user_id, layanan_id, tipe_layanan, is_pickup, estimasi, status, total_harga, berat, tgl_order) 
                VALUES (?, ?, ?, ?, ?, 'menunggu konfirmasi', 0, 0, NOW())`;
 
-    const values = [user_id, layanan_id, tipe_layanan, is_pickup, estimasiFinal];
+    const values = [user_id, layanan_id, tipe_layanan, isPickupVal, estimasiFinal];
 
     db.query(sql, values, (err, result) => {
         if (err) {
@@ -84,7 +86,7 @@ const getOrderHistory = (req, res) => {
         FROM orders
         JOIN layanan ON orders.layanan_id = layanan.id
         WHERE orders.user_id = ?
-        ORDER BY orders.tgl_order DESC
+        ORDER BY orders.id DESC
     `;
     
     db.query(sql, [user_id], (err, result) => {
@@ -306,6 +308,9 @@ const getAdminStats = async (req, res) => {
         // 6. Pickup Breakdown
         const pickupSql = `SELECT is_pickup, COUNT(*) as count FROM orders GROUP BY is_pickup`;
 
+        // 7. Payment Breakdown (BARU)
+        const paymentSql = `SELECT metode_pembayaran, COUNT(*) as count FROM orders GROUP BY metode_pembayaran`;
+
         const [
             summary, 
             dailyRevenue, 
@@ -314,7 +319,8 @@ const getAdminStats = async (req, res) => {
             statusStats, 
             serviceStats, 
             typeStats, 
-            pickupStats
+            pickupStats,
+            paymentStats
         ] = await Promise.all([
             query(summarySql),
             query(dailySql),
@@ -323,7 +329,8 @@ const getAdminStats = async (req, res) => {
             query(statusSql),
             query(serviceSql),
             query(typeSql),
-            query(pickupSql)
+            query(pickupSql),
+            query(paymentSql)
         ]);
 
         const stats = {
@@ -336,7 +343,8 @@ const getAdminStats = async (req, res) => {
             status_breakdown: statusStats,
             service_breakdown: serviceStats,
             type_breakdown: typeStats,
-            pickup_breakdown: pickupStats
+            pickup_breakdown: pickupStats,
+            payment_breakdown: paymentStats
         };
         
         console.log('✅ Stats result:', stats);
@@ -498,6 +506,14 @@ const verifikasiPembayaran = (req, res) => {
     }
 };
 
+// GET LAYANAN LIST
+const getLayanan = (req, res) => {
+    db.query("SELECT * FROM layanan", (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json(result);
+    });
+};
+
 module.exports = {
     createOrder,
     getAllOrders,
@@ -508,5 +524,6 @@ module.exports = {
     getAdminStats,
     pilihMetodePembayaran,
     uploadBuktiTransfer,
-    verifikasiPembayaran
+    verifikasiPembayaran,
+    getLayanan
 };

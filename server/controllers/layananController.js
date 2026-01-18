@@ -2,6 +2,7 @@ const db = require('../config/database');
 
 // GET ALL LAYANAN
 const getAllLayanan = (req, res) => {
+    console.log("GET /layanan received");
     const sql = "SELECT * FROM layanan";
     db.query(sql, (err, result) => {
         if (err) {

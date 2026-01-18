@@ -35,7 +35,7 @@ const getUserById = (req, res) => {
 
 // UPDATE USER
 const updateUser = (req, res) => {
-    const { id, username, password, alamat, no_hp } = req.body;
+    const { id, username, password, alamat, no_hp, latitude, longitude } = req.body;
 
     if (!id) {
         return res.status(400).json({ 
@@ -43,8 +43,8 @@ const updateUser = (req, res) => {
         });
     }
 
-    const sql = "UPDATE users SET username = ?, password = ?, alamat = ?, no_hp = ? WHERE id = ?";
-    db.query(sql, [username, password, alamat, no_hp, id], (err, result) => {
+    const sql = "UPDATE users SET username = ?, password = ?, alamat = ?, no_hp = ?, latitude = ?, longitude = ? WHERE id = ?";
+    db.query(sql, [username, password, alamat, no_hp, latitude, longitude, id], (err, result) => {
         if (err) {
             console.error('Update user error:', err);
             return res.status(500).json({ 

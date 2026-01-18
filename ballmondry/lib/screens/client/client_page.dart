@@ -1,12 +1,15 @@
 // lib/screens/client/client_page.dart
 import 'package:flutter/material.dart';
+import '../../services/chat_service.dart'; // Import Chat Service
+import '../chat/chat_page.dart'; // Import Chat Page
 import 'tabs/order.dart';
 import 'tabs/profile.dart';
 import '../../widgets/weather_widget.dart';
 
 class ClientPage extends StatefulWidget {
   final int userId;
-  const ClientPage({super.key, required this.userId});
+  final String? username;
+  const ClientPage({super.key, required this.userId, this.username});
 
   @override
   State<ClientPage> createState() => _ClientPageState();
@@ -53,7 +56,27 @@ class _ClientPageState extends State<ClientPage> {
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatPage(
+                    chatId: widget.userId.toString(),
+                    isViewerAdmin: false,
+                    chatTitle: "Chat Admin",
+                    currenUserDisplayName: widget.username ?? "User",
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.chat_bubble_outline),
+            tooltip: "Chat Admin",
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: _pages[_selectedIndex], 
       bottomNavigationBar: NavigationBar(

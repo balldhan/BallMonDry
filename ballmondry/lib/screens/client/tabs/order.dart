@@ -30,7 +30,7 @@ class _OrderTabState extends State<OrderTab> {
   // Ambil Daftar Layanan (Reguler/Express/Satuan)
   Future<void> fetchLayanan() async {
     try {
-      final response = await http.get(Uri.parse('${Config.baseUrl}/layanan'));
+      final response = await http.get(Uri.parse('${Config.baseUrl}/orders/layanan'));
       if (response.statusCode == 200) {
         if (mounted)
           setState(() {
@@ -46,7 +46,7 @@ class _OrderTabState extends State<OrderTab> {
   Future<void> fetchRiwayat() async {
     try {
       final response = await http.get(
-        Uri.parse('${Config.baseUrl}/history/${widget.userId}'),
+        Uri.parse('${Config.baseUrl}/orders/history/${widget.userId}'),
       );
       if (response.statusCode == 200) {
         if (mounted) {
@@ -183,7 +183,7 @@ class _OrderTabState extends State<OrderTab> {
       print("SENDING ORDER -> Layanan: $idLayanan, Estimasi: $estimasiStr");
 
       final response = await http.post(
-        Uri.parse('${Config.baseUrl}/order'),
+        Uri.parse('${Config.baseUrl}/orders'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "user_id": widget.userId,
@@ -243,7 +243,7 @@ class _OrderTabState extends State<OrderTab> {
     try {
       // Logic update estimasi di skip dulu agar simpel, atau bisa ditambahkan jika perlu
       final response = await http.put(
-        Uri.parse('${Config.baseUrl}/order/edit-client'),
+        Uri.parse('${Config.baseUrl}/orders/edit-client'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "order_id": orderId,
@@ -280,7 +280,7 @@ class _OrderTabState extends State<OrderTab> {
   Future<void> deleteOrder(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse('${Config.baseUrl}/order/$id'),
+        Uri.parse('${Config.baseUrl}/orders/$id'),
       );
       if (response.statusCode == 200) {
         fetchRiwayat();
@@ -307,7 +307,7 @@ class _OrderTabState extends State<OrderTab> {
   Future<void> pilihMetodePembayaran(int orderId, String metode) async {
     try {
       final response = await http.post(
-        Uri.parse('${Config.baseUrl}/order/payment/metode'),
+        Uri.parse('${Config.baseUrl}/orders/payment/metode'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'order_id': orderId,
@@ -335,7 +335,7 @@ class _OrderTabState extends State<OrderTab> {
   Future<void> uploadBuktiTransfer(int orderId, String base64Image, String fileName) async {
     try {
       final response = await http.post(
-        Uri.parse('${Config.baseUrl}/order/payment/upload-bukti'),
+        Uri.parse('${Config.baseUrl}/orders/payment/upload-bukti'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'order_id': orderId,

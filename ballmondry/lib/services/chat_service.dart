@@ -25,13 +25,17 @@ class ChatService {
 
     // Update summary for Chat List
     Map<String, dynamic> summaryData = {
-      'username': username,
       'lastMessage': message,
       'lastMessageTime': timestamp,
       'userId': userId,
       'unreadAdmin': !isAdmin, // If user sends, unread for admin
       'unreadUser': isAdmin,   // If admin sends, unread for user
     };
+
+    // Hanya update username jika yang mengirim adalah User (agar nama tidak tertimpa jadi 'Admin')
+    if (!isAdmin) {
+      summaryData['username'] = username;
+    }
 
     // We use 'update' to merge specific fields if exist, but for RTDB strict structure is better.
     // However, here we want to ensure username persists or updates.

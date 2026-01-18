@@ -1,8 +1,16 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart'; // Import Firebase
 import 'screens/splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(); // Initialize Firebase
+  } catch (e) {
+    print("Firebase init error (Did you add google-services.json?): $e");
+  }
+
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     title: 'Smart Laundry',

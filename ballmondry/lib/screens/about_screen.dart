@@ -27,13 +27,68 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 20),
             
             const Text(
-              "Smart Laundry App",
+              "BallMonDry",
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const Text("Versi 1.0.0", style: TextStyle(color: Colors.white70, fontSize: 16)),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
 
-            // BAGIAN INFO API - Dengan design modern
+            // 1. DESKRIPSI APLIKASI
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.description, color: Colors.deepPurple, size: 28),
+                      SizedBox(width: 10),
+                      Text("Deskripsi Aplikasi", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
+                    ],
+                  ),
+                  Divider(height: 30, thickness: 1),
+                  Text(
+                    "BallMonDry adalah aplikasi manajemen laundry pintar yang memudahkan pelanggan dalam memesan layanan laundry (antar-jemput), memantau status cucian secara real-time, serta melihat riwayat transaksi. Aplikasi ini juga membantu pemilik laundry dalam mengelola pesanan dan laporan dengan lebih efisien.",
+                    style: TextStyle(fontSize: 15, height: 1.5),
+                    textAlign: TextAlign.justify,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // 2. TIM PENGEMBANG
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.groups, color: Colors.deepPurple, size: 28),
+                      SizedBox(width: 10),
+                      Text("Tim Pengembang", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
+                    ],
+                  ),
+                  const Divider(height: 30, thickness: 1),
+                  _buildDeveloperRow("Fadli Ahmad Fahrezi", "152023047"),
+                  const SizedBox(height: 15),
+                  _buildDeveloperRow("Iqbal Ramadhan", "152023177"),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+            
+            // 3. API INFO
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -47,18 +102,13 @@ class AboutScreen extends StatelessWidget {
                     children: [
                       Icon(Icons.api, color: Colors.deepPurple, size: 28),
                       SizedBox(width: 10),
-                      Text("Sumber Data Publik", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
+                      Text("Sumber Data", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
                     ],
                   ),
                   Divider(height: 30, thickness: 1),
                   Text(
-                    "Fitur Cuaca dalam aplikasi ini menggunakan data publik dari BMKG (Badan Meteorologi, Klimatologi, dan Geofisika).",
-                    style: TextStyle(fontSize: 15, height: 1.5),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    "Endpoint API yang digunakan:",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    "Fitur Cuaca dalam aplikasi ini menggunakan data publik dari BMKG.",
+                    style: TextStyle(fontSize: 15),
                   ),
                   SizedBox(height: 10),
                   SelectableText(
@@ -69,31 +119,39 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 30),
-            
-            // BAGIAN DEVELOPER
+            const SizedBox(height: 20),
+
+            // 4. DEMO APLIKASI
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Column(
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.people, color: Colors.deepPurple, size: 28),
+                      Icon(Icons.video_library, color: Colors.deepPurple, size: 28),
                       SizedBox(width: 10),
-                      Text("Dikembangkan oleh", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
+                      Text("Demo Aplikasi", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
                     ],
                   ),
-                  const Divider(height: 30, thickness: 1),
-                  _buildDeveloperRow("Fadli Ahmad Fahrezi"),
-                  const SizedBox(height: 10),
-                  _buildDeveloperRow("Iqbal Ramadhan"),
+                  Divider(height: 30, thickness: 1),
+                  Text(
+                    "Tonton video demo penggunaan aplikasi BallMonDry di YouTube:",
+                    style: TextStyle(fontSize: 15),
+                  ),
+                  SizedBox(height: 10),
+                  SelectableText(
+                    "https://youtu.be/", // Ganti dengan link youtube asli
+                    style: TextStyle(color: Colors.blue, fontStyle: FontStyle.italic, fontSize: 13),
+                  ),
                 ],
               ),
             ),
+
             const SizedBox(height: 30),
           ],
         ),
@@ -101,16 +159,25 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDeveloperRow(String name) {
+  Widget _buildDeveloperRow(String name, String npm) {
     return Row(
       children: [
         const CircleAvatar(
-          radius: 20,
+          radius: 24,
           backgroundColor: Colors.deepPurple,
-          child: Icon(Icons.person, color: Colors.white, size: 20),
+          child: Icon(Icons.person, color: Colors.white, size: 24),
         ),
         const SizedBox(width: 15),
-        Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text("NPM: $npm", style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            ],
+          ),
+        ),
       ],
     );
   }

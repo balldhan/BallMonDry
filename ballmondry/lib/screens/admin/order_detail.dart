@@ -31,7 +31,7 @@ class _OrderDetailState extends State<OrderDetail> {
 
     try {
       final response = await http.put(
-        Uri.parse('${Config.baseUrl}/order/update'),
+        Uri.parse('${Config.baseUrl}/orders/update'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "order_id": order['id'], // Pastikan key ini 'order_id' sesuai backend
@@ -85,7 +85,7 @@ class _OrderDetailState extends State<OrderDetail> {
       }
       
       final response = await http.post(
-        Uri.parse('${Config.baseUrl}/order/payment/verifikasi'),
+        Uri.parse('${Config.baseUrl}/orders/payment/verifikasi'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(body),
       );

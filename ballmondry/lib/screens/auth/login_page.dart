@@ -34,7 +34,10 @@ class _LoginPageState extends State<LoginPage> {
         if (data['data']['role'] == 'admin') {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => const AdminPage()));
         } else {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => ClientPage(userId: data['data']['id'])));
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => ClientPage(
+            userId: data['data']['id'],
+            username: data['data']['username'],
+          )));
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login Gagal!"), backgroundColor: Colors.red));
